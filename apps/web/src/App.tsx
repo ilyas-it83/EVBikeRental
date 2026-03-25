@@ -10,6 +10,12 @@ import ActiveRide from './pages/ActiveRide';
 import RideSummary from './pages/RideSummary';
 import RideHistory from './pages/RideHistory';
 import PaymentMethods from './pages/PaymentMethods';
+import Subscriptions from './pages/Subscriptions';
+import AdminLayout from './pages/admin/AdminLayout';
+import FleetOverview from './pages/admin/FleetOverview';
+import StationManagement from './pages/admin/StationManagement';
+import BikeManagement from './pages/admin/BikeManagement';
+import UserManagement from './pages/admin/UserManagement';
 
 function PublicOnly({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -93,6 +99,29 @@ export default function App() {
           </ProtectedPage>
         }
       />
+      <Route
+        path="/settings/subscription"
+        element={
+          <ProtectedPage>
+            <Subscriptions />
+          </ProtectedPage>
+        }
+      />
+
+      {/* Admin routes — AdminLayout handles its own RBAC */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<FleetOverview />} />
+        <Route path="stations" element={<StationManagement />} />
+        <Route path="bikes" element={<BikeManagement />} />
+        <Route path="users" element={<UserManagement />} />
+      </Route>
     </Routes>
   );
 }

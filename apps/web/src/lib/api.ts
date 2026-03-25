@@ -202,4 +202,51 @@ export const paymentMethodsApi = {
     api.put<{ paymentMethod: PaymentMethodResponse }>(`/api/payment-methods/${id}/default`).then((r) => r.data),
 };
 
+// --- Admin API ---
+
+export const adminApi = {
+  getFleetOverview: () => api.get('/api/admin/fleet/overview').then((r) => r.data),
+  getFleetStations: () => api.get('/api/admin/fleet/stations').then((r) => r.data),
+
+  listStations: () => api.get('/api/admin/stations').then((r) => r.data),
+  createStation: (data: { name: string; address: string; lat: number; lng: number; dockCapacity: number }) =>
+    api.post('/api/admin/stations', data).then((r) => r.data),
+  updateStation: (id: string, data: Partial<{ name: string; address: string; lat: number; lng: number; dockCapacity: number; isActive: boolean }>) =>
+    api.put(`/api/admin/stations/${id}`, data).then((r) => r.data),
+  deleteStation: (id: string) => api.delete(`/api/admin/stations/${id}`).then((r) => r.data),
+
+  listBikes: (params?: { stationId?: string; status?: string; lowBattery?: boolean }) =>
+    api.get('/api/admin/bikes', { params }).then((r) => r.data),
+  createBike: (data: { serialNumber: string; model: string; stationId: string; batteryLevel: number }) =>
+    api.post('/api/admin/bikes', data).then((r) => r.data),
+  updateBike: (id: string, data: Partial<{ serialNumber: string; model: string; stationId: string; batteryLevel: number; status: string }>) =>
+    api.put(`/api/admin/bikes/${id}`, data).then((r) => r.data),
+  deleteBike: (id: string) => api.delete(`/api/admin/bikes/${id}`).then((r) => r.data),
+
+  listUsers: (page = 1, limit = 20) =>
+    api.get('/api/admin/users', { params: { page, limit } }).then((r) => r.data),
+  updateUserRole: (id: string, role: string) =>
+    api.put(`/api/admin/users/${id}/role`, { role }).then((r) => r.data),
+  suspendUser: (id: string) =>
+    api.put(`/api/admin/users/${id}/suspend`).then((r) => r.data),
+};
+
+// --- Subscriptions API ---
+
+export const subscriptionsApi = {
+  getPlans: () => api.get('/api/subscriptions/plans').then((r) => r.data),
+  getCurrent: () => api.get('/api/subscriptions/current').then((r) => r.data),
+  subscribe: (plan: string) => api.post('/api/subscriptions/subscribe', { plan }).then((r) => r.data),
+  cancel: () => api.delete('/api/subscriptions/cancel').then((r) => r.data),
+};
+
+// --- Reservations API ---
+
+export const reservationsApi = {
+  create: (bikeId: string, stationId: string) =>
+    api.post('/api/reservations', { bikeId, stationId }).then((r) => r.data),
+  cancel: (id: string) => api.delete(`/api/reservations/${id}`).then((r) => r.data),
+  getActive: () => api.get('/api/reservations/active').then((r) => r.data),
+};
+
 export default api;

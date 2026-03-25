@@ -40,6 +40,14 @@ export function Layout({ children }: { children: ReactNode }) {
             <NavLink to="/settings/payments" className={navLinkClass}>
               💳 Payment
             </NavLink>
+            <NavLink to="/settings/subscription" className={navLinkClass}>
+              ⭐ Plan
+            </NavLink>
+            {user?.role === 'admin' && (
+              <NavLink to="/admin" className={navLinkClass}>
+                ⚙️ Admin
+              </NavLink>
+            )}
             {activeRide && (
               <NavLink to="/ride/active" className={navLinkClass}>
                 <span className="inline-flex items-center gap-1">
@@ -75,6 +83,14 @@ export function Layout({ children }: { children: ReactNode }) {
         <NavLink to="/settings/payments" className={navLinkClass}>
           💳 Pay
         </NavLink>
+        <NavLink to="/settings/subscription" className={navLinkClass}>
+          ⭐ Plan
+        </NavLink>
+        {user?.role === 'admin' && (
+          <NavLink to="/admin" className={navLinkClass}>
+            ⚙️
+          </NavLink>
+        )}
         {activeRide && (
           <NavLink to="/ride/active" className={navLinkClass}>
             <span className="inline-flex items-center gap-1">

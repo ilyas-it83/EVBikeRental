@@ -10,6 +10,7 @@ import { stationsApi, type StationSummary } from '../lib/api';
 import { StationDetailPanel } from '../components/StationDetailPanel';
 import { Spinner } from '../components/ui/Spinner';
 import { useToast } from '../components/ui/Toast';
+import { useWebSocket } from '../hooks/useWebSocket';
 
 // Default center: San Francisco
 const DEFAULT_CENTER: [number, number] = [37.7749, -122.4194];
@@ -112,6 +113,36 @@ function UserLocationHandler({
   return null;
 }
 
+function ConnectionBadge({ status, lastUpdated }: { status: string; lastUpdated: Date | null }) {
+  const colors: Record<string, string> = {
+    connected: 'bg-green-500',
+    polling: 'bg-yellow-500',
+    disconnected: 'bg-red-500',
+  };
+
+  const [secondsAgo, setSecondsAgo] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!lastUpdated) return;
+    const calc = () => setSecondsAgo(Math.floor((Date.now() - lastUpdated.getTime()) / 1000));
+    calc();
+    const interval = setInterval(calc, 1000);
+    return () => clearInterval(interval);
+  }, [lastUpdated]);
+
+  return (
+    <div className="absolute right-3 top-3 z-20 flex items-center gap-2 rounded-lg bg-white/90 px-2.5 py-1.5 text-xs shadow-md backdrop-blur">
+      <span className={`inline-block h-2 w-2 rounded-full ${colors[status] || 'bg-gray-400'}`} />
+      <span className="text-gray-600 capitalize">{status}</span>
+      {secondsAgo !== null && (
+        <span className="text-gray-400">
+          · {secondsAgo < 60 ? `${secondsAgo}s ago` : `${Math.floor(secondsAgo / 60)}m ago`}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function Home() {
   const { toast } = useToast();
   const [stations, setStations] = useState<StationSummary[]>([]);
@@ -119,6 +150,23 @@ export default function Home() {
   const [selectedStation, setSelectedStation] = useState<StationSummary | null>(null);
   const [userLat, setUserLat] = useState<number | undefined>();
   const [userLng, setUserLng] = useState<number | undefined>();
+
+  const { status: wsStatus, lastMessage, lastUpdated } = useWebSocket();
+
+  // Handle real-time station updates
+  useEffect(() => {
+    if (!lastMessage || lastMessage.type !== 'station:availability') return;
+    const { stationId, availableBikes, emptyDocks } = lastMessage.data as {
+      stationId: string;
+      availableBikes: number;
+      emptyDocks: number;
+    };
+    setStations((prev) =>
+      prev.map((s) =>
+        s.id === stationId ? { ...s, availableBikes, emptyDocks } : s,
+      ),
+    );
+  }, [lastMessage]);
 
   const handleLocate = useCallback(
     (lat: number, lng: number) => {
@@ -162,6 +210,9 @@ export default function Home() {
 
   return (
     <div className="relative h-full w-full">
+      {/* Connection status badge */}
+      <ConnectionBadge status={wsStatus} lastUpdated={lastUpdated} />
+
       {/* Loading overlay */}
       {isLoading && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-white/60">
