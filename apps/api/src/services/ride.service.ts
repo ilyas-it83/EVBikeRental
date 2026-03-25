@@ -1,10 +1,11 @@
 import { db } from '../db/index.js';
-import { rides, bikes, stations, payments, paymentMethods } from '../db/schema.js';
+import { rides, bikes, stations, payments, paymentMethods, users } from '../db/schema.js';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import crypto from 'crypto';
 import * as pricingService from './pricing.service.js';
 import * as paymentService from './payment.service.js';
 import * as iotService from './iot.service.js';
+import * as alertService from './alert.service.js';
 import { broadcastStationUpdate } from '../websocket.js';
 
 // ─── Types ──────────────────────────────────────────
@@ -126,6 +127,10 @@ export function startRide(
 
   const ride = db.select().from(rides).where(eq(rides.id, id)).get()!;
   broadcastStationUpdate(stationId);
+
+  // Check alerts after ride start
+  try { alertService.checkStationCapacity(); } catch (_) { /* non-critical */ }
+
   return enrichRide(ride);
 }
 
@@ -199,6 +204,13 @@ export function endRide(
 
   const updatedRide = db.select().from(rides).where(eq(rides.id, rideId)).get()!;
   broadcastStationUpdate(endStationId);
+
+  // Check alerts after ride end
+  try {
+    alertService.checkLowBattery();
+    alertService.checkStationCapacity();
+  } catch (_) { /* non-critical */ }
+
   return enrichRide(updatedRide);
 }
 
@@ -242,4 +254,88 @@ export function getRideById(rideId: string, userId: string): RideWithDetails {
     throw { status: 403, error: 'Not your ride' };
   }
   return enrichRide(ride);
+}
+
+// ─── Receipt ────────────────────────────────────────
+
+export interface RideReceipt {
+  rideId: string;
+  date: string;
+  startStation: string;
+  endStation: string | null;
+  durationMinutes: number | null;
+  distanceKm: number | null;
+  cost: number | null;
+  currency: string;
+  paymentStatus: string | null;
+  paymentMethod: string | null;
+  userName: string;
+  userEmail: string;
+}
+
+export function getRideReceipt(rideId: string, userId: string): RideReceipt {
+  const ride = db.select().from(rides).where(eq(rides.id, rideId)).get();
+  if (!ride) {
+    throw { status: 404, error: 'Ride not found' };
+  }
+  if (ride.userId !== userId) {
+    throw { status: 403, error: 'Not your ride' };
+  }
+  if (ride.status !== 'completed') {
+    throw { status: 400, error: 'Receipt only available for completed rides' };
+  }
+
+  const payment = db.select().from(payments).where(eq(payments.rideId, rideId)).get();
+
+  // Get user info for receipt
+  const user = db.select().from(users).where(eq(users.id, userId)).get();
+
+  return {
+    rideId: ride.id,
+    date: ride.startTime,
+    startStation: getStationName(ride.startStationId) ?? 'Unknown',
+    endStation: getStationName(ride.endStationId),
+    durationMinutes: ride.durationMinutes,
+    distanceKm: ride.distanceKm,
+    cost: ride.cost,
+    currency: payment?.currency ?? 'USD',
+    paymentStatus: payment?.status ?? null,
+    paymentMethod: payment?.method ?? null,
+    userName: user?.name ?? 'Unknown',
+    userEmail: user?.email ?? 'Unknown',
+  };
+}
+
+// ─── CSV Export ─────────────────────────────────────
+
+export function exportRideHistoryCSV(userId: string, from: string, to: string): string {
+  const userRides = db
+    .select()
+    .from(rides)
+    .where(
+      and(
+        eq(rides.userId, userId),
+        sql`${rides.startTime} >= ${from}`,
+        sql`${rides.startTime} <= ${to}`,
+      ),
+    )
+    .orderBy(desc(rides.startTime))
+    .all();
+
+  const header = 'ride_id,date,start_station,end_station,duration_minutes,distance_km,cost,payment_status';
+  const rows = userRides.map((ride) => {
+    const payment = db.select().from(payments).where(eq(payments.rideId, ride.id)).get();
+    return [
+      ride.id,
+      ride.startTime,
+      getStationName(ride.startStationId) ?? '',
+      getStationName(ride.endStationId) ?? '',
+      ride.durationMinutes ?? '',
+      ride.distanceKm ?? '',
+      ride.cost ?? '',
+      payment?.status ?? '',
+    ].join(',');
+  });
+
+  return [header, ...rows].join('\n');
 }

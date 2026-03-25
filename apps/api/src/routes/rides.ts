@@ -7,6 +7,14 @@ export const ridesRouter = Router();
 
 ridesRouter.use(requireAuth);
 
+// ─── Receipt & Export Schemas ───────────────────────
+
+const exportSchema = z.object({
+  from: z.string().min(1, 'from date is required'),
+  to: z.string().min(1, 'to date is required'),
+  format: z.enum(['csv']).default('csv'),
+});
+
 // ─── Validation Schemas ─────────────────────────────
 
 const unlockSchema = z.object({
@@ -111,6 +119,46 @@ ridesRouter.get('/', (req: Request, res: Response) => {
       return;
     }
     console.error('Get ride history error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ─── GET /api/rides/export ──────────────────────────
+
+ridesRouter.get('/export', (req: Request, res: Response) => {
+  try {
+    const parsed = exportSchema.safeParse(req.query);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'Validation failed', details: parsed.error.flatten().fieldErrors });
+      return;
+    }
+
+    const csv = rideService.exportRideHistoryCSV(req.user!.id, parsed.data.from, parsed.data.to);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="rides-${parsed.data.from}-to-${parsed.data.to}.csv"`);
+    res.send(csv);
+  } catch (err: any) {
+    if (err.status) {
+      res.status(err.status).json({ error: err.error });
+      return;
+    }
+    console.error('Export rides error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ─── GET /api/rides/:id/receipt ─────────────────────
+
+ridesRouter.get('/:id/receipt', (req: Request, res: Response) => {
+  try {
+    const receipt = rideService.getRideReceipt(req.params.id as string, req.user!.id);
+    res.json({ receipt });
+  } catch (err: any) {
+    if (err.status) {
+      res.status(err.status).json({ error: err.error });
+      return;
+    }
+    console.error('Get receipt error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

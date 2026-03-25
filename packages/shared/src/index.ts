@@ -238,3 +238,99 @@ export const MAX_BATTERY_LEVEL = 100;
 export const MIN_RIDE_BATTERY = 15;
 export const DEFAULT_PAGE_SIZE = 20;
 export const MAX_PAGE_SIZE = 100;
+
+// ─── Dispute Types ──────────────────────────────────
+
+export enum DisputeReason {
+  OVERCHARGE = 'overcharge',
+  BIKE_ISSUE = 'bike_issue',
+  WRONG_STATION = 'wrong_station',
+  OTHER = 'other',
+}
+
+export enum DisputeStatus {
+  OPEN = 'open',
+  UNDER_REVIEW = 'under_review',
+  RESOLVED = 'resolved',
+  REJECTED = 'rejected',
+}
+
+export interface Dispute {
+  id: string;
+  userId: string;
+  rideId: string;
+  reason: DisputeReason;
+  description: string;
+  status: DisputeStatus;
+  resolution: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─── Alert Types ────────────────────────────────────
+
+export enum AlertType {
+  LOW_BATTERY = 'low_battery',
+  STATION_FULL = 'station_full',
+  STATION_EMPTY = 'station_empty',
+  MAINTENANCE_DUE = 'maintenance_due',
+  PAYMENT_FAILURE = 'payment_failure',
+}
+
+export enum AlertSeverity {
+  INFO = 'info',
+  WARNING = 'warning',
+  CRITICAL = 'critical',
+}
+
+export interface Alert {
+  id: string;
+  type: AlertType;
+  severity: AlertSeverity;
+  message: string;
+  metadata: string | null;
+  isRead: boolean;
+  dismissed: boolean;
+  createdAt: string;
+}
+
+// ─── Analytics Types ────────────────────────────────
+
+export interface AnalyticsOverview {
+  totalRides: number;
+  totalRevenue: number;
+  activeUsers: number;
+  fleetUtilization: number;
+}
+
+export interface RidesPerDay {
+  date: string;
+  count: number;
+}
+
+export interface RevenuePerWeek {
+  week: string;
+  revenue: number;
+}
+
+export interface PeakHour {
+  hour: number;
+  count: number;
+}
+
+// ─── Receipt Types ──────────────────────────────────
+
+export interface RideReceipt {
+  rideId: string;
+  date: string;
+  startStation: string;
+  endStation: string | null;
+  durationMinutes: number | null;
+  distanceKm: number | null;
+  cost: number | null;
+  currency: string;
+  paymentStatus: string | null;
+  paymentMethod: string | null;
+  userName: string;
+  userEmail: string;
+}

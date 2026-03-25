@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { requireAdmin } from '../middleware/auth.js';
 import * as adminService from '../services/admin.service.js';
 import * as fleetService from '../services/fleet.service.js';
+import * as analyticsService from '../services/analytics.service.js';
 
 export const adminRouter = Router();
 
@@ -235,6 +236,92 @@ adminRouter.get('/fleet/stations', (_req: Request, res: Response) => {
     res.json({ stations });
   } catch (err: any) {
     console.error('Fleet station details error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ─── Analytics Routes ───────────────────────────────
+
+const daysSchema = z.object({
+  days: z.coerce.number().int().positive().default(30),
+});
+
+const weeksSchema = z.object({
+  weeks: z.coerce.number().int().positive().default(12),
+});
+
+const analyticsExportSchema = z.object({
+  format: z.enum(['csv']).default('csv'),
+  type: z.enum(['rides', 'revenue']),
+});
+
+adminRouter.get('/analytics/overview', (_req: Request, res: Response) => {
+  try {
+    const overview = analyticsService.getOverview();
+    res.json({ overview });
+  } catch (err: any) {
+    console.error('Analytics overview error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+adminRouter.get('/analytics/rides-per-day', (req: Request, res: Response) => {
+  try {
+    const parsed = daysSchema.safeParse(req.query);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'Invalid query parameters', details: parsed.error.flatten().fieldErrors });
+      return;
+    }
+    const data = analyticsService.getRidesPerDay(parsed.data.days);
+    res.json({ data });
+  } catch (err: any) {
+    console.error('Rides per day error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+adminRouter.get('/analytics/revenue-per-week', (req: Request, res: Response) => {
+  try {
+    const parsed = weeksSchema.safeParse(req.query);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'Invalid query parameters', details: parsed.error.flatten().fieldErrors });
+      return;
+    }
+    const data = analyticsService.getRevenuePerWeek(parsed.data.weeks);
+    res.json({ data });
+  } catch (err: any) {
+    console.error('Revenue per week error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+adminRouter.get('/analytics/peak-hours', (_req: Request, res: Response) => {
+  try {
+    const data = analyticsService.getPeakHours();
+    res.json({ data });
+  } catch (err: any) {
+    console.error('Peak hours error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+adminRouter.get('/analytics/export', (req: Request, res: Response) => {
+  try {
+    const parsed = analyticsExportSchema.safeParse(req.query);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'Validation failed', details: parsed.error.flatten().fieldErrors });
+      return;
+    }
+
+    const csv = parsed.data.type === 'rides'
+      ? analyticsService.exportRidesCSV()
+      : analyticsService.exportRevenueCSV();
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${parsed.data.type}-export.csv"`);
+    res.send(csv);
+  } catch (err: any) {
+    console.error('Analytics export error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

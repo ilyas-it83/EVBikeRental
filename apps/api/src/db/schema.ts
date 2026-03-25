@@ -116,3 +116,30 @@ export const refreshTokens = sqliteTable('refresh_tokens', {
   expiresAt: text('expires_at').notNull(),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
 });
+
+// ─── Disputes ───────────────────────────────────────
+
+export const disputes = sqliteTable('disputes', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id),
+  rideId: text('ride_id').notNull().references(() => rides.id),
+  reason: text('reason', { enum: ['overcharge', 'bike_issue', 'wrong_station', 'other'] }).notNull(),
+  description: text('description').notNull(),
+  status: text('status', { enum: ['open', 'under_review', 'resolved', 'rejected'] }).notNull().default('open'),
+  resolution: text('resolution'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+});
+
+// ─── Alerts ─────────────────────────────────────────
+
+export const alerts = sqliteTable('alerts', {
+  id: text('id').primaryKey(),
+  type: text('type', { enum: ['low_battery', 'station_full', 'station_empty', 'maintenance_due', 'payment_failure'] }).notNull(),
+  severity: text('severity', { enum: ['info', 'warning', 'critical'] }).notNull(),
+  message: text('message').notNull(),
+  metadata: text('metadata'),
+  isRead: integer('is_read', { mode: 'boolean' }).notNull().default(false),
+  dismissed: integer('dismissed', { mode: 'boolean' }).notNull().default(false),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+});

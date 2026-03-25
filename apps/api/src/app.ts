@@ -10,6 +10,8 @@ import { paymentMethodsRouter } from './routes/payment-methods.js';
 import { adminRouter } from './routes/admin.js';
 import { subscriptionsRouter } from './routes/subscriptions.js';
 import { reservationsRouter } from './routes/reservations.js';
+import { disputesRouter } from './routes/disputes.js';
+import { alertsRouter } from './routes/alerts.js';
 
 export function createApp() {
   const app = express();
@@ -27,6 +29,8 @@ export function createApp() {
   app.use('/api/admin', adminRouter);
   app.use('/api/subscriptions', subscriptionsRouter);
   app.use('/api/reservations', reservationsRouter);
+  app.use('/api/disputes', disputesRouter);
+  app.use('/api/admin/alerts', alertsRouter);
 
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     console.error('Unhandled error:', err);
