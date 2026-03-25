@@ -136,12 +136,21 @@ describe('App Routing', () => {
     expect(screen.queryByText(/sign in to your account/i)).not.toBeInTheDocument();
   });
 
-  it('redirects unauthenticated user from / to /login', () => {
+  it('shows landing page for unauthenticated user at /', () => {
     mockUseAuth.mockReturnValue({
       user: null, isAuthenticated: false, isLoading: false,
       login: vi.fn(), register: vi.fn(), logout: vi.fn(),
     });
     renderApp('/');
+    expect(screen.getByText(/green rides, zero hassle/i)).toBeInTheDocument();
+  });
+
+  it('redirects unauthenticated user from /home to /login', () => {
+    mockUseAuth.mockReturnValue({
+      user: null, isAuthenticated: false, isLoading: false,
+      login: vi.fn(), register: vi.fn(), logout: vi.fn(),
+    });
+    renderApp('/home');
     expect(screen.queryByText('⚡ EV Bike')).not.toBeInTheDocument();
   });
 
@@ -151,7 +160,7 @@ describe('App Routing', () => {
       isAuthenticated: true, isLoading: false,
       login: vi.fn(), register: vi.fn(), logout: vi.fn(),
     });
-    renderApp('/');
+    renderApp('/home');
     expect(screen.getByText('⚡ EV Bike')).toBeInTheDocument();
   });
 

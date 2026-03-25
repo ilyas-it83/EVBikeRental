@@ -4,6 +4,7 @@ import { ridesApi, type RideResponse } from '../lib/api';
 import { useToast } from '../components/ui/Toast';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
+import { DisputeForm } from '../components/DisputeForm';
 
 const UNLOCK_FEE = 1.0;
 const PER_MINUTE_RATE = 0.15;
@@ -23,6 +24,7 @@ export default function RideSummary() {
 
   const [ride, setRide] = useState<RideResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showDisputeForm, setShowDisputeForm] = useState(false);
 
   useEffect(() => {
     if (!rideId) return;
@@ -32,6 +34,10 @@ export default function RideSummary() {
       .catch(() => toast('Failed to load ride details', 'error'))
       .finally(() => setIsLoading(false));
   }, [rideId, toast]);
+
+  const handleDownloadReceipt = () => {
+    window.print();
+  };
 
   if (isLoading) {
     return (
@@ -124,7 +130,7 @@ export default function RideSummary() {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <Button onClick={() => navigate('/')} className="flex-1">
           🗺️ Back to Map
         </Button>
@@ -132,6 +138,25 @@ export default function RideSummary() {
           📋 View History
         </Button>
       </div>
+      {ride.status === 'completed' && (
+        <div className="mt-3 flex gap-3">
+          <Button variant="secondary" onClick={handleDownloadReceipt} className="flex-1" size="sm">
+            🧾 Download Receipt
+          </Button>
+          <Button variant="ghost" onClick={() => setShowDisputeForm(true)} className="flex-1" size="sm">
+            ⚠️ Dispute
+          </Button>
+        </div>
+      )}
+
+      {/* Dispute form modal */}
+      {showDisputeForm && ride && (
+        <DisputeForm
+          rideId={ride.id}
+          onClose={() => setShowDisputeForm(false)}
+          onSubmitted={() => setShowDisputeForm(false)}
+        />
+      )}
     </div>
   );
 }

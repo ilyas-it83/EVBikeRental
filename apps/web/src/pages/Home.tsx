@@ -150,6 +150,9 @@ export default function Home() {
   const [selectedStation, setSelectedStation] = useState<StationSummary | null>(null);
   const [userLat, setUserLat] = useState<number | undefined>();
   const [userLng, setUserLng] = useState<number | undefined>();
+  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const [sortKey, setSortKey] = useState<'name' | 'distance' | 'availableBikes'>('distance');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
   const { status: wsStatus, lastMessage, lastUpdated } = useWebSocket();
 
@@ -208,8 +211,32 @@ export default function Home() {
     setSelectedStation(s);
   }, []);
 
+  const sortedStations = [...stations].sort((a, b) => {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    if (sortKey === 'name') return dir * a.name.localeCompare(b.name);
+    return dir * (a[sortKey] - b[sortKey]);
+  });
+
+  const handleSort = (key: 'name' | 'distance' | 'availableBikes') => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
   return (
     <div className="relative h-full w-full">
+      {/* View toggle */}
+      <button
+        onClick={() => setViewMode(viewMode === 'map' ? 'list' : 'map')}
+        className="absolute left-3 top-3 z-20 rounded-lg bg-white/90 px-3 py-1.5 text-xs font-medium text-gray-700 shadow-md backdrop-blur hover:bg-white"
+        aria-label={`Switch to ${viewMode === 'map' ? 'list' : 'map'} view`}
+      >
+        {viewMode === 'map' ? '📋 List View' : '🗺️ Map View'}
+      </button>
+
       {/* Connection status badge */}
       <ConnectionBadge status={wsStatus} lastUpdated={lastUpdated} />
 
@@ -223,19 +250,83 @@ export default function Home() {
         </div>
       )}
 
-      <MapContainer
-        center={DEFAULT_CENTER}
-        zoom={DEFAULT_ZOOM}
-        className="h-full w-full"
-        zoomControl={false}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <UserLocationHandler onLocate={handleLocate} />
-        <StationMarkers stations={stations} onSelect={handleSelect} />
-      </MapContainer>
+      {viewMode === 'map' ? (
+        <MapContainer
+          center={DEFAULT_CENTER}
+          zoom={DEFAULT_ZOOM}
+          className="h-full w-full"
+          zoomControl={false}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <UserLocationHandler onLocate={handleLocate} />
+          <StationMarkers stations={stations} onSelect={handleSelect} />
+        </MapContainer>
+      ) : (
+        <div className="h-full overflow-auto p-4">
+          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+            <table className="min-w-full divide-y divide-gray-200 text-sm" role="grid" aria-label="Station list">
+              <thead className="bg-gray-50">
+                <tr>
+                  {[
+                    { key: 'name' as const, label: 'Station' },
+                    { key: 'distance' as const, label: 'Distance' },
+                    { key: 'availableBikes' as const, label: 'Available Bikes' },
+                  ].map((col) => (
+                    <th
+                      key={col.key}
+                      className="cursor-pointer px-4 py-3 text-left font-medium text-gray-600 hover:text-gray-900 select-none"
+                      onClick={() => handleSort(col.key)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSort(col.key); }}
+                      tabIndex={0}
+                      role="columnheader"
+                      aria-sort={sortKey === col.key ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
+                    >
+                      {col.label} {sortKey === col.key && (sortDir === 'asc' ? '↑' : '↓')}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {sortedStations.map((s) => (
+                  <tr
+                    key={s.id}
+                    className="cursor-pointer hover:bg-green-50 transition-colors"
+                    onClick={() => handleSelect(s)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleSelect(s); }}
+                    tabIndex={0}
+                    role="row"
+                  >
+                    <td className="px-4 py-3">
+                      <p className="font-medium text-gray-900">{s.name}</p>
+                      <p className="text-xs text-gray-500">{s.address}</p>
+                    </td>
+                    <td className="px-4 py-3 text-gray-600">{s.distance.toFixed(1)} km</td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                        s.availableBikes >= 3 ? 'bg-green-100 text-green-700'
+                          : s.availableBikes >= 1 ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-red-100 text-red-700'
+                      }`}>
+                        {s.availableBikes} bikes
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {sortedStations.length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-8 text-center text-gray-500">
+                      No stations found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Station detail panel */}
       {selectedStation && (

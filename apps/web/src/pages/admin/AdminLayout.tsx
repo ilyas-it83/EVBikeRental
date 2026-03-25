@@ -8,6 +8,9 @@ const navItems = [
   { to: '/admin/stations', label: '📍 Stations', end: false },
   { to: '/admin/bikes', label: '🚲 Bikes', end: false },
   { to: '/admin/users', label: '👥 Users', end: false },
+  { to: '/admin/disputes', label: '⚖️ Disputes', end: false },
+  { to: '/admin/analytics', label: '📈 Analytics', end: false },
+  { to: '/admin/alerts', label: '🔔 Alerts', end: false },
 ];
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>

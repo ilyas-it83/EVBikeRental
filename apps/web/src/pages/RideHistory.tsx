@@ -41,6 +41,9 @@ export default function RideHistory() {
   const [hasMore, setHasMore] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [exportFrom, setExportFrom] = useState('');
+  const [exportTo, setExportTo] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
 
   const fetchRides = (pageNum: number, append = false) => {
     const setLoading = append ? setIsLoadingMore : setIsLoading;
@@ -54,6 +57,27 @@ export default function RideHistory() {
       })
       .catch(() => toast('Failed to load ride history', 'error'))
       .finally(() => setLoading(false));
+  };
+
+  const handleExportCsv = async () => {
+    if (!exportFrom || !exportTo) {
+      toast('Please select both dates', 'error');
+      return;
+    }
+    setIsExporting(true);
+    try {
+      const blob = await ridesApi.exportCsv(exportFrom, exportTo);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rides-${exportFrom}-to-${exportTo}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast('Failed to export rides', 'error');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   useEffect(() => {
@@ -71,7 +95,34 @@ export default function RideHistory() {
 
   return (
     <div className="mx-auto max-w-lg px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">Ride History</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Ride History</h1>
+      </div>
+
+      {/* CSV Export */}
+      <div className="mb-4 flex flex-wrap items-end gap-2 rounded-xl bg-gray-50 p-3">
+        <div>
+          <label className="mb-1 block text-xs font-medium text-gray-500">From</label>
+          <input
+            type="date"
+            value={exportFrom}
+            onChange={(e) => setExportFrom(e.target.value)}
+            className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-gray-500">To</label>
+          <input
+            type="date"
+            value={exportTo}
+            onChange={(e) => setExportTo(e.target.value)}
+            className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+          />
+        </div>
+        <Button size="sm" variant="secondary" onClick={handleExportCsv} isLoading={isExporting}>
+          📥 Export CSV
+        </Button>
+      </div>
 
       {rides.length === 0 ? (
         <div className="rounded-xl bg-gray-50 py-16 text-center">

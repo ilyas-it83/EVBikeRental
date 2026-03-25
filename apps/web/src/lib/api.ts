@@ -175,6 +175,12 @@ export const ridesApi = {
 
   getById: (id: string) =>
     api.get<{ ride: RideResponse }>(`/api/rides/${id}`).then((r) => r.data),
+
+  getReceipt: (id: string) =>
+    api.get<{ receipt: RideResponse }>(`/api/rides/${id}/receipt`).then((r) => r.data),
+
+  exportCsv: (from: string, to: string) =>
+    api.get('/api/rides/export', { params: { from, to, format: 'csv' }, responseType: 'blob' }).then((r) => r.data),
 };
 
 // --- Payment method types & API ---
@@ -229,6 +235,13 @@ export const adminApi = {
     api.put(`/api/admin/users/${id}/role`, { role }).then((r) => r.data),
   suspendUser: (id: string) =>
     api.put(`/api/admin/users/${id}/suspend`).then((r) => r.data),
+
+  getAnalyticsOverview: () => api.get('/api/admin/analytics/overview').then((r) => r.data),
+  getRidesPerDay: (days = 30) => api.get('/api/admin/analytics/rides-per-day', { params: { days } }).then((r) => r.data),
+  getRevenuePerWeek: (weeks = 12) => api.get('/api/admin/analytics/revenue-per-week', { params: { weeks } }).then((r) => r.data),
+  getPeakHours: () => api.get('/api/admin/analytics/peak-hours').then((r) => r.data),
+  exportAnalytics: (format: string, type: string) =>
+    api.get('/api/admin/analytics/export', { params: { format, type }, responseType: 'blob' }).then((r) => r.data),
 };
 
 // --- Subscriptions API ---
@@ -247,6 +260,67 @@ export const reservationsApi = {
     api.post('/api/reservations', { bikeId, stationId }).then((r) => r.data),
   cancel: (id: string) => api.delete(`/api/reservations/${id}`).then((r) => r.data),
   getActive: () => api.get('/api/reservations/active').then((r) => r.data),
+};
+
+// --- Disputes API ---
+
+export interface DisputeResponse {
+  id: string;
+  rideId: string;
+  userId: string;
+  reason: string;
+  description: string;
+  status: 'open' | 'under_review' | 'resolved' | 'rejected';
+  resolution?: string;
+  createdAt: string;
+  updatedAt: string;
+  ride?: RideResponse;
+}
+
+export const disputesApi = {
+  create: (data: { rideId: string; reason: string; description: string }) =>
+    api.post<{ dispute: DisputeResponse }>('/api/disputes', data).then((r) => r.data),
+
+  list: () =>
+    api.get<{ disputes: DisputeResponse[] }>('/api/disputes').then((r) => r.data),
+
+  getById: (id: string) =>
+    api.get<{ dispute: DisputeResponse }>(`/api/disputes/${id}`).then((r) => r.data),
+
+  adminList: (params?: { status?: string }) =>
+    api.get<{ disputes: DisputeResponse[] }>('/api/admin/disputes', { params }).then((r) => r.data),
+
+  adminUpdate: (id: string, data: { status: string; resolution?: string }) =>
+    api.put<{ dispute: DisputeResponse }>(`/api/admin/disputes/${id}`, data).then((r) => r.data),
+};
+
+// --- Alerts API ---
+
+export interface AlertResponse {
+  id: string;
+  type: 'low_battery' | 'station_full' | 'station_empty' | 'maintenance' | 'payment_failure';
+  severity: 'info' | 'warning' | 'critical';
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  metadata?: Record<string, unknown>;
+}
+
+export const alertsApi = {
+  list: (params?: { type?: string; severity?: string; isRead?: boolean }) =>
+    api.get<{ alerts: AlertResponse[] }>('/api/admin/alerts', { params }).then((r) => r.data),
+
+  count: () =>
+    api.get<{ count: number }>('/api/admin/alerts/count').then((r) => r.data),
+
+  markRead: (id: string) =>
+    api.put<{ alert: AlertResponse }>(`/api/admin/alerts/${id}/read`).then((r) => r.data),
+
+  markAllRead: () =>
+    api.put('/api/admin/alerts/read-all').then((r) => r.data),
+
+  dismiss: (id: string) =>
+    api.delete(`/api/admin/alerts/${id}`).then((r) => r.data),
 };
 
 export default api;
