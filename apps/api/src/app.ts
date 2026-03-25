@@ -16,6 +16,9 @@ import { alertsRouter } from './routes/alerts.js';
 export function createApp() {
   const app = express();
 
+  // Trust reverse proxy (nginx) — required for rate limiting behind a proxy
+  app.set('trust proxy', 1);
+
   app.use(helmet());
   app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173', credentials: true }));
   app.use(express.json());
