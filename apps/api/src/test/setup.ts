@@ -88,6 +88,44 @@ const SCHEMA_SQL = `
     revoked INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS rides (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    bike_id TEXT NOT NULL REFERENCES bikes(id),
+    start_station_id TEXT NOT NULL REFERENCES stations(id),
+    end_station_id TEXT REFERENCES stations(id),
+    start_time TEXT NOT NULL,
+    end_time TEXT,
+    duration_minutes INTEGER,
+    distance_km REAL,
+    cost REAL,
+    status TEXT NOT NULL DEFAULT 'active',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS payments (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    ride_id TEXT NOT NULL REFERENCES rides(id),
+    amount REAL NOT NULL,
+    currency TEXT NOT NULL DEFAULT 'USD',
+    status TEXT NOT NULL DEFAULT 'pending',
+    method TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS payment_methods (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    type TEXT NOT NULL DEFAULT 'card',
+    last4 TEXT NOT NULL,
+    brand TEXT NOT NULL,
+    expiry_month INTEGER NOT NULL,
+    expiry_year INTEGER NOT NULL,
+    is_default INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `;
 
 // ─── Database Helpers ───────────────────────────────
@@ -240,6 +278,40 @@ export async function createAuthenticatedUser(
     refreshToken,
     cookieHeader: `access_token=${accessToken}; refresh_token=${refreshToken}`,
   };
+}
+
+// ─── Haversine Distance (for testing geospatial queries) ────
+
+// ─── Payment Method Helpers ─────────────────────────
+
+export function seedPaymentMethod(
+  sqlite: Database.Database,
+  userId: string,
+  overrides: {
+    id?: string;
+    last4?: string;
+    brand?: string;
+    expiryMonth?: number;
+    expiryYear?: number;
+    isDefault?: boolean;
+  } = {},
+): { id: string } {
+  const id = overrides.id ?? `pm-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+  sqlite
+    .prepare(
+      'INSERT INTO payment_methods (id, user_id, type, last4, brand, expiry_month, expiry_year, is_default) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    )
+    .run(
+      id,
+      userId,
+      'card',
+      overrides.last4 ?? '4242',
+      overrides.brand ?? 'Visa',
+      overrides.expiryMonth ?? 12,
+      overrides.expiryYear ?? 2026,
+      overrides.isDefault ? 1 : 0,
+    );
+  return { id };
 }
 
 // ─── Haversine Distance (for testing geospatial queries) ────
