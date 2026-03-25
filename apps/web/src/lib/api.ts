@@ -131,4 +131,75 @@ export const stationsApi = {
     api.get<{ station: StationDetail }>(`/api/stations/${id}`).then((r) => r.data),
 };
 
+// --- Ride types & API ---
+
+export interface RideResponse {
+  id: string;
+  bikeId: string;
+  startStationId: string;
+  endStationId: string | null;
+  startTime: string;
+  endTime: string | null;
+  durationMinutes: number | null;
+  distanceKm: number | null;
+  cost: number | null;
+  status: string;
+  startStationName?: string;
+  endStationName?: string;
+  bike?: { model: string; batteryLevel: number };
+  payment?: { id: string; amount: number; status: string; createdAt: string } | null;
+}
+
+export const ridesApi = {
+  unlock: (bikeId: string, stationId: string) =>
+    api.post<{ ride: RideResponse }>('/api/rides/unlock', { bikeId, stationId }).then((r) => r.data),
+
+  getActive: () =>
+    api.get<{ ride: RideResponse | null }>('/api/rides/active').then((r) => r.data),
+
+  endRide: (rideId: string, endStationId: string) =>
+    api
+      .post<{ ride: RideResponse; payment: { id: string; amount: number; status: string } }>(
+        `/api/rides/${rideId}/end`,
+        { endStationId },
+      )
+      .then((r) => r.data),
+
+  list: (page = 1, limit = 20) =>
+    api
+      .get<{ rides: RideResponse[]; pagination: { page: number; limit: number; total: number; pages: number } }>(
+        '/api/rides',
+        { params: { page, limit } },
+      )
+      .then((r) => r.data),
+
+  getById: (id: string) =>
+    api.get<{ ride: RideResponse }>(`/api/rides/${id}`).then((r) => r.data),
+};
+
+// --- Payment method types & API ---
+
+export interface PaymentMethodResponse {
+  id: string;
+  type: string;
+  last4: string;
+  brand: string;
+  expiryMonth: number;
+  expiryYear: number;
+  isDefault: boolean;
+}
+
+export const paymentMethodsApi = {
+  list: () =>
+    api.get<{ paymentMethods: PaymentMethodResponse[] }>('/api/payment-methods').then((r) => r.data),
+
+  add: (data: { last4: string; brand: string; expiryMonth: number; expiryYear: number }) =>
+    api.post<{ paymentMethod: PaymentMethodResponse }>('/api/payment-methods', data).then((r) => r.data),
+
+  remove: (id: string) => api.delete(`/api/payment-methods/${id}`).then((r) => r.data),
+
+  setDefault: (id: string) =>
+    api.put<{ paymentMethod: PaymentMethodResponse }>(`/api/payment-methods/${id}/default`).then((r) => r.data),
+};
+
 export default api;

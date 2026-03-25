@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { stationsApi, type StationDetail, type StationSummary } from '../lib/api';
 import { Spinner } from './ui/Spinner';
 import { Button } from './ui/Button';
@@ -60,6 +61,7 @@ export function StationDetailPanel({
       ? `${Math.round(station.distance * 1000)} m`
       : `${station.distance.toFixed(1)} km`;
 
+  const navigate = useNavigate();
   const availableBikes = detail?.bikes.filter((b) => b.status === 'available') ?? [];
 
   return (
@@ -136,24 +138,33 @@ export function StationDetailPanel({
                   {availableBikes.map((bike) => (
                     <div
                       key={bike.id}
-                      className="flex items-center justify-between rounded-lg border border-gray-100 p-3"
+                      className="rounded-lg border border-gray-100 p-3"
                     >
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{bike.model}</p>
-                        <p className="text-xs text-gray-500">ID: {bike.id.slice(0, 8)}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {/* Battery bar */}
-                        <div className="h-3 w-16 overflow-hidden rounded-full bg-gray-200">
-                          <div
-                            className={`h-full rounded-full ${batteryColor(bike.batteryLevel)}`}
-                            style={{ width: `${bike.batteryLevel}%` }}
-                          />
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{bike.model}</p>
+                          <p className="text-xs text-gray-500">ID: {bike.id.slice(0, 8)}</p>
                         </div>
-                        <span className="w-9 text-right text-xs font-medium text-gray-600">
-                          {bike.batteryLevel}%
-                        </span>
+                        <div className="flex items-center gap-2">
+                          {/* Battery bar */}
+                          <div className="h-3 w-16 overflow-hidden rounded-full bg-gray-200">
+                            <div
+                              className={`h-full rounded-full ${batteryColor(bike.batteryLevel)}`}
+                              style={{ width: `${bike.batteryLevel}%` }}
+                            />
+                          </div>
+                          <span className="w-9 text-right text-xs font-medium text-gray-600">
+                            {bike.batteryLevel}%
+                          </span>
+                        </div>
                       </div>
+                      <Button
+                        size="sm"
+                        className="mt-2 w-full"
+                        onClick={() => navigate(`/unlock/${bike.id}?stationId=${station.id}`)}
+                      >
+                        🔓 Unlock
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -165,12 +176,7 @@ export function StationDetailPanel({
                 </p>
               )}
 
-              {/* Unlock button (Sprint 2 placeholder) */}
-              <div className="mt-5">
-                <Button className="w-full" disabled>
-                  🔓 Unlock Bike — Coming Soon
-                </Button>
-              </div>
+              {/* Unlock section removed — individual bike unlock buttons above */}
             </>
           )}
         </div>

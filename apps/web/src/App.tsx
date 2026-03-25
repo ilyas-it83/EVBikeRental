@@ -5,12 +5,25 @@ import { Layout } from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
+import UnlockBike from './pages/UnlockBike';
+import ActiveRide from './pages/ActiveRide';
+import RideSummary from './pages/RideSummary';
+import RideHistory from './pages/RideHistory';
+import PaymentMethods from './pages/PaymentMethods';
 
 function PublicOnly({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   if (isLoading) return null;
   if (isAuthenticated) return <Navigate to="/" replace />;
   return <>{children}</>;
+}
+
+function ProtectedPage({ children }: { children: React.ReactNode }) {
+  return (
+    <ProtectedRoute>
+      <Layout>{children}</Layout>
+    </ProtectedRoute>
+  );
 }
 
 export default function App() {
@@ -35,11 +48,49 @@ export default function App() {
       <Route
         path="/"
         element={
-          <ProtectedRoute>
-            <Layout>
-              <Home />
-            </Layout>
-          </ProtectedRoute>
+          <ProtectedPage>
+            <Home />
+          </ProtectedPage>
+        }
+      />
+      <Route
+        path="/unlock/:bikeId"
+        element={
+          <ProtectedPage>
+            <UnlockBike />
+          </ProtectedPage>
+        }
+      />
+      <Route
+        path="/ride/active"
+        element={
+          <ProtectedPage>
+            <ActiveRide />
+          </ProtectedPage>
+        }
+      />
+      <Route
+        path="/ride/:rideId/summary"
+        element={
+          <ProtectedPage>
+            <RideSummary />
+          </ProtectedPage>
+        }
+      />
+      <Route
+        path="/rides"
+        element={
+          <ProtectedPage>
+            <RideHistory />
+          </ProtectedPage>
+        }
+      />
+      <Route
+        path="/settings/payments"
+        element={
+          <ProtectedPage>
+            <PaymentMethods />
+          </ProtectedPage>
         }
       />
     </Routes>
