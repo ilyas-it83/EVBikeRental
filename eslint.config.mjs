@@ -47,6 +47,17 @@ export default [
     },
   },
   {
+    files: ['e2e/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      'no-console': 'off',
+    },
+  },
+  {
     files: ['apps/api/**/*.ts'],
     languageOptions: {
       globals: {

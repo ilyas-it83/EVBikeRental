@@ -53,10 +53,29 @@ jobs:
       - name: Run Web tests
         run: npm run test -w apps/web
 
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium --with-deps
+      - run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, e2e]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
