@@ -1,6 +1,9 @@
 import app from './app.js';
 import { setupWebSocket } from './websocket.js';
 import { expireReservations } from './services/reservation.service.js';
+import { seedIfEmpty } from './db/seed-auto.js';
+
+seedIfEmpty();
 
 const PORT = process.env.PORT || 3001;
 

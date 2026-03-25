@@ -1,10 +1,12 @@
 # Build stage
 FROM node:20-alpine AS builder
 WORKDIR /app
+COPY .npmrc ./
 COPY package*.json ./
 COPY apps/web/package*.json ./apps/web/
+COPY apps/api/package*.json ./apps/api/
 COPY packages/shared/package*.json ./packages/shared/
-RUN npm ci --workspace=apps/web --workspace=packages/shared
+RUN npm ci --ignore-scripts
 COPY apps/web/ ./apps/web/
 COPY packages/shared/ ./packages/shared/
 COPY tsconfig.json ./

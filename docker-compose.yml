@@ -10,6 +10,7 @@ services:
       - PORT=3001
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
       - CORS_ORIGIN=http://localhost
+      - DB_PATH=/app/data/evbike.db
     volumes:
       - api-data:/app/data
     healthcheck:
