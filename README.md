@@ -10,7 +10,7 @@ git clone https://github.com/ilyas-it83/EVBikeRental.git
 cd EVBikeRental
 
 # Install all dependencies
-npm install --legacy-peer-deps
+npm install
 
 # Copy environment files
 cp apps/api/.env.example apps/api/.env

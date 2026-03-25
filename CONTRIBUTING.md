@@ -5,7 +5,7 @@
 ```bash
 git clone https://github.com/ilyas-it83/EVBikeRental.git
 cd EVBikeRental
-npm install --legacy-peer-deps
+npm install
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
 npm run dev
