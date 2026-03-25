@@ -48,7 +48,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: echo "No tests configured yet — will be added by Amy"
+      - name: Run API tests with coverage
+        run: npm run test:coverage -w apps/api
+      - name: Run Web tests
+        run: npm run test -w apps/web
 
   build:
     name: Build
