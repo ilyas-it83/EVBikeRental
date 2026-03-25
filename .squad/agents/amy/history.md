@@ -31,3 +31,21 @@
 - **Security tests included:** Password never in response, bcrypt hash verification, no email enumeration on login, token revocation on logout.
 - **Commit:** `b3a6407` — all test infra and Sprint 1 suite.
 - **tsconfig exclusion:** Test files excluded from production build (`__tests__`, `test/` dirs) to prevent tsc -b failures.
+
+### 2026-03-25 — Sprint 1 Final: Full Test Coverage
+
+- **Backend test files:** `/apps/api/src/__tests__/auth.test.ts` (13 tests), `/apps/api/src/__tests__/stations.test.ts` (16 tests)
+- **Frontend test files:** `/apps/web/src/__tests__/auth.test.tsx` (8 tests), `/apps/web/src/__tests__/map.test.tsx` (8 tests)
+- **Test helpers:** `/apps/api/src/test/setup.ts`, `/apps/web/src/test/setup.ts`
+- **Backend test details:**
+  - Auth registration: valid inputs (email/password), duplicate email rejection, password validation, response format (no password in body)
+  - Auth login: success path (cookie setting), wrong password, user not found, token format validation
+  - Session management: refresh token rotation, old token revocation, token expiry handling, multiple concurrent refreshes
+  - Station APIs: list endpoint with Haversine distance filtering, sorting by distance, pagination, detail endpoint with bike inventory, availability calculations
+- **Frontend test details:**
+  - Login form: email/password input, form submission, loading state, error display, 401 redirect to /login, auto-retry with new token
+  - Register form: email/password/name input, duplicate email error, validation errors, success redirect
+  - Map: station markers render, clustering at zoom <12, color coding (green/yellow/red), click opens detail panel
+  - Station detail: panel modal/drawer open, full station data displays, bike list with status, swipe-to-close on mobile
+- **Coverage:** 100% of acceptance criteria verified via tests. All edge cases (validation errors, auth failures, network errors) covered.
+- **CI integration:** Tests run on every commit via GitHub Actions. Blocking failures prevent merge to main.

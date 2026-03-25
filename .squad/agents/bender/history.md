@@ -29,3 +29,13 @@
 - **Seed data:** 5 San Francisco stations, 25 bikes (5/station), 2 users (rider/admin), 3 completed rides + payments.
 - **Shared types note:** `packages/shared` uses `BikeStatus.RENTED` but DB schema uses `in_use`. May need alignment in Sprint 2.
 - **Express 5 quirk:** `req.params.id` is `string | string[]`, needs cast to `string`.
+- **API Contracts Finalized:**
+  - `POST /api/auth/register` → { id, email, name, isAdmin } + access_token + refresh_token cookies
+  - `POST /api/auth/login` → { id, email, name, isAdmin } + cookies
+  - `POST /api/auth/refresh` → new tokens in cookies
+  - `POST /api/auth/logout` → cookies cleared
+  - `GET /api/auth/me` → { id, email, name, isAdmin }
+  - `GET /api/stations?lat=X&lng=Y&radiusKm=Z` → [{ id, name, lat, lng, availableBikes, emptyDocks }]
+  - `GET /api/stations/:id` → { id, name, lat, lng, address, bikes: [{ id, status, bikeNumber }] }
+- **Critical files:** `/apps/api/src/db/schema.ts`, `/apps/api/src/routes/auth.ts`, `/apps/api/src/routes/stations.ts`, `/apps/api/src/services/auth.service.ts`, `/apps/api/src/services/station.service.ts`
+- **Tests passing:** 13 auth tests (registration, login, session management), 16 station tests (list filtering, distance calculation, detail endpoint)

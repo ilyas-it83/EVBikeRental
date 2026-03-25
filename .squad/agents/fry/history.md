@@ -28,3 +28,20 @@
 - **Build config:** Test files (`__tests__/`, `test/`) must be excluded from `apps/web/tsconfig.json` — they have vitest-specific imports that break `tsc -b`.
 - **Component library:** Basic `Button`, `Input`, `Spinner` in `components/ui/`. `ToastProvider` for global notifications.
 - **File structure:** `lib/api.ts`, `contexts/AuthContext.tsx`, `components/`, `pages/` — follows Leela's scaffold.
+
+### 2026-03-25 — Sprint 1 Frontend Final
+
+- **Pages:** `/login` (form validation, auto-redirect if authenticated), `/register` (email/password, duplicate check), `/map` (interactive map with clustering)
+- **Components:** `StationMarker`, `StationDetail` (responsive panel), `BikeList`, `Auth` (wrapper)
+- **Context & Hooks:** `AuthContext` with `login()`, `register()`, `logout()`, `refresh()` methods. `useAuth()` hook for component consumption.
+- **API Client:** Axios instance at `lib/api.ts` with response type definitions. Interceptor chains 401 → refresh → retry. Queue system prevents thundering herd.
+- **Styling:** Tailwind CSS throughout. Mobile-first responsive (sm:, md:, lg: breakpoints).
+- **API Contracts Consumed:**
+  - `POST /api/auth/register { email, password, name }` → { user: AuthUser }
+  - `POST /api/auth/login { email, password }` → { user: AuthUser }
+  - `POST /api/auth/refresh` → { user: AuthUser } (automatic on 401)
+  - `GET /api/auth/me` → { user: AuthUser }
+  - `GET /api/stations?lat=X&lng=Y&radiusKm=Z` → [{ id, name, lat, lng, availableBikes, emptyDocks }]
+  - `GET /api/stations/:id` → { id, name, lat, lng, address, bikes: [{ id, status, bikeNumber }] }
+- **Critical files:** `/apps/web/src/pages/login.tsx`, `/apps/web/src/pages/register.tsx`, `/apps/web/src/lib/api.ts`, `/apps/web/src/contexts/AuthContext.tsx`, `/apps/web/src/pages/map.tsx`, `/apps/web/src/components/StationDetail.tsx`
+- **Tests passing:** 4 login tests (form, validation, 401 redirect), 4 register tests (form, validation, duplicate), 4 map tests (markers, clustering, click handlers), 4 detail tests (panel opening, bike list, availability)

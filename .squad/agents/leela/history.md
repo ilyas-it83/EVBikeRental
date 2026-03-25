@@ -28,3 +28,26 @@
 - **Parallel tracks:** Auth and Discovery run in parallel in Sprint 1 (different agents, independent after scaffolding).
 - **Task IDs:** T-001 through T-325. These are the atomic units of work for agent sessions.
 - **Decision logged:** `.squad/decisions/inbox/leela-user-stories.md`
+
+### 2026-03-25 — Sprint 1 Complete: Foundation + Auth + Discovery
+
+**Outcome:** All critical path items delivered. Monorepo scaffold, database schema, authentication APIs, station discovery with geospatial search, frontend UI with auth and interactive maps, comprehensive test suite.
+
+**Agents & Issues:**
+- Leela (leela-scaffold): #1 (Monorepo Foundation), #2 (CI/CD Pipeline) → 7 commits
+- Bender (bender-sprint1): #3 (DB), #4-backend (Auth), #5-backend (Station List), #7-backend (Station Detail), #8-backend (Availability) → DB schema + auth/station APIs
+- Fry (fry-sprint1): #4-frontend (Login/Register), #5-frontend (API Client), #6 (Station Map), #7-frontend (Detail Panel), #8-frontend (Availability Display) → full frontend UI
+- Amy (amy-sprint1): #4-tests, #5-tests, #7-tests, #8-tests → 45 tests (29 backend, 16 frontend), all passing
+
+**Key Technical Decisions:**
+- Simplified tech stack: SQLite + Drizzle (not PostgreSQL), Leaflet + OSM (not Mapbox), JWT in cookies with rotation, Vitest for both backend/frontend
+- Backend APIs: `/api/auth/*` (register/login/refresh/logout/me), `/api/stations` (list with Haversine), `/api/stations/:id` (detail + bike inventory)
+- Frontend: Axios client with 401 refresh interceptor, AuthContext for state, Leaflet map with marker clustering, responsive station detail panel
+- Test patterns: Mock implementations match API contracts; security assertions (password never in response, bcrypt verification, no email enumeration)
+
+**Critical Files Created:**
+- Backend: `/apps/api/src/db/schema.ts` (Drizzle), `/apps/api/src/routes/auth.ts`, `/apps/api/src/routes/stations.ts`, `/apps/api/src/services/`
+- Frontend: `/apps/web/src/pages/login.tsx`, `/apps/web/src/pages/register.tsx`, `/apps/web/src/lib/api.ts`, `/apps/web/src/contexts/AuthContext.tsx`, `/apps/web/src/pages/map.tsx`
+- Tests: `/apps/api/src/__tests__/auth.test.ts`, `/apps/api/src/__tests__/stations.test.ts`, `/apps/web/src/__tests__/auth.test.tsx`, `/apps/web/src/__tests__/map.test.tsx`
+
+**Decisions Recorded:** 7 decisions merged into `.squad/decisions/decisions.md` — tech simplification, backend patterns, frontend architecture, test infrastructure, legacy peer deps, Docker hosting (deferred), user stories.
