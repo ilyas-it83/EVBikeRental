@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
@@ -76,12 +76,12 @@ export default function Analytics() {
     );
   }
 
-  const cards = [
+  const cards = useMemo(() => [
     { label: 'Total Rides', value: overview?.totalRides?.toLocaleString() || '0', icon: '🚲' },
     { label: 'Total Revenue', value: `$${(overview?.totalRevenue || 0).toLocaleString()}`, icon: '💰' },
     { label: 'Active Users', value: overview?.activeUsers?.toLocaleString() || '0', icon: '👥' },
     { label: 'Fleet Utilization', value: `${overview?.fleetUtilization || 0}%`, icon: '📊' },
-  ];
+  ], [overview]);
 
   return (
     <div>

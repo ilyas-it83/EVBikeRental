@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -47,7 +47,7 @@ function stationIcon(availableBikes: number): L.DivIcon {
 }
 
 // Sub-component that manages markers inside the map
-function StationMarkers({
+const StationMarkers = memo(function StationMarkers({
   stations,
   onSelect,
 }: {
@@ -84,10 +84,10 @@ function StationMarkers({
   }, [map, stations, onSelect]);
 
   return null;
-}
+});
 
 // Sub-component that flies to user location
-function UserLocationHandler({
+const UserLocationHandler = memo(function UserLocationHandler({
   onLocate,
 }: {
   onLocate: (lat: number, lng: number) => void;
@@ -111,9 +111,9 @@ function UserLocationHandler({
   }, [map, onLocate]);
 
   return null;
-}
+});
 
-function ConnectionBadge({ status, lastUpdated }: { status: string; lastUpdated: Date | null }) {
+const ConnectionBadge = memo(function ConnectionBadge({ status, lastUpdated }: { status: string; lastUpdated: Date | null }) {
   const colors: Record<string, string> = {
     connected: 'bg-green-500',
     polling: 'bg-yellow-500',
@@ -141,7 +141,7 @@ function ConnectionBadge({ status, lastUpdated }: { status: string; lastUpdated:
       )}
     </div>
   );
-}
+});
 
 export default function Home() {
   const { toast } = useToast();
@@ -211,11 +211,11 @@ export default function Home() {
     setSelectedStation(s);
   }, []);
 
-  const sortedStations = [...stations].sort((a, b) => {
+  const sortedStations = useMemo(() => [...stations].sort((a, b) => {
     const dir = sortDir === 'asc' ? 1 : -1;
     if (sortKey === 'name') return dir * a.name.localeCompare(b.name);
     return dir * (a[sortKey] - b[sortKey]);
-  });
+  }), [stations, sortKey, sortDir]);
 
   const handleSort = (key: 'name' | 'distance' | 'availableBikes') => {
     if (sortKey === key) {

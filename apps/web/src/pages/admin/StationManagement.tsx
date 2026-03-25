@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { adminApi } from '../../lib/api';
 import { Spinner } from '../../components/ui/Spinner';
 import { Button } from '../../components/ui/Button';
@@ -109,11 +109,11 @@ export default function StationManagement() {
     }
   };
 
-  const filtered = stations.filter(
+  const filtered = useMemo(() => stations.filter(
     (s) =>
       s.name.toLowerCase().includes(search.toLowerCase()) ||
       s.address.toLowerCase().includes(search.toLowerCase()),
-  );
+  ), [stations, search]);
 
   if (isLoading) {
     return (

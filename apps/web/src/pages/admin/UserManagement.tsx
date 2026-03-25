@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { adminApi } from '../../lib/api';
 import { Spinner } from '../../components/ui/Spinner';
 import { useToast } from '../../components/ui/Toast';
@@ -28,11 +28,11 @@ export default function UserManagement() {
   const [search, setSearch] = useState('');
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
 
-  const filteredUsers = users.filter((u) => {
+  const filteredUsers = useMemo(() => users.filter((u) => {
     if (!search) return true;
     const q = search.toLowerCase();
     return u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
-  });
+  }), [users, search]);
 
   const fetchUsers = (page = 1) => {
     setIsLoading(true);

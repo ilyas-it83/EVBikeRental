@@ -1,27 +1,33 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Layout } from './components/Layout';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import LandingPage from './pages/LandingPage';
-import Home from './pages/Home';
-import UnlockBike from './pages/UnlockBike';
-import ActiveRide from './pages/ActiveRide';
-import RideSummary from './pages/RideSummary';
-import RideHistory from './pages/RideHistory';
-import Disputes from './pages/Disputes';
-import PaymentMethods from './pages/PaymentMethods';
-import Subscriptions from './pages/Subscriptions';
-import AdminLayout from './pages/admin/AdminLayout';
-import FleetOverview from './pages/admin/FleetOverview';
-import StationManagement from './pages/admin/StationManagement';
-import BikeManagement from './pages/admin/BikeManagement';
-import UserManagement from './pages/admin/UserManagement';
-import DisputeManagement from './pages/admin/DisputeManagement';
-import Analytics from './pages/admin/Analytics';
-import Alerts from './pages/admin/Alerts';
+import { Spinner } from './components/ui/Spinner';
+
+// Lazy-loaded page components
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const Home = lazy(() => import('./pages/Home'));
+const UnlockBike = lazy(() => import('./pages/UnlockBike'));
+const ActiveRide = lazy(() => import('./pages/ActiveRide'));
+const RideSummary = lazy(() => import('./pages/RideSummary'));
+const RideHistory = lazy(() => import('./pages/RideHistory'));
+const Disputes = lazy(() => import('./pages/Disputes'));
+const PaymentMethods = lazy(() => import('./pages/PaymentMethods'));
+const Subscriptions = lazy(() => import('./pages/Subscriptions'));
+
+// Admin pages — only loaded when admin navigates there
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
+const FleetOverview = lazy(() => import('./pages/admin/FleetOverview'));
+const StationManagement = lazy(() => import('./pages/admin/StationManagement'));
+const BikeManagement = lazy(() => import('./pages/admin/BikeManagement'));
+const UserManagement = lazy(() => import('./pages/admin/UserManagement'));
+const DisputeManagement = lazy(() => import('./pages/admin/DisputeManagement'));
+const Analytics = lazy(() => import('./pages/admin/Analytics'));
+const Alerts = lazy(() => import('./pages/admin/Alerts'));
 
 function PublicOnly({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -38,9 +44,18 @@ function ProtectedPage({ children }: { children: React.ReactNode }) {
   );
 }
 
+function PageSpinner() {
+  return (
+    <div className="flex h-full min-h-[50vh] items-center justify-center">
+      <Spinner className="h-10 w-10" />
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
+      <Suspense fallback={<PageSpinner />}>
       <Routes>
         <Route
           path="/"
@@ -149,6 +164,7 @@ export default function App() {
           <Route path="alerts" element={<Alerts />} />
         </Route>
       </Routes>
+      </Suspense>
     </ErrorBoundary>
   );
 }

@@ -107,22 +107,26 @@ describe('App Routing', () => {
     vi.clearAllMocks();
   });
 
-  it('renders login page at /login', () => {
+  it('renders login page at /login', async () => {
     mockUseAuth.mockReturnValue({
       user: null, isAuthenticated: false, isLoading: false,
       login: vi.fn(), register: vi.fn(), logout: vi.fn(),
     });
     renderApp('/login');
-    expect(screen.getByText(/sign in to your account/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/sign in to your account/i)).toBeInTheDocument();
+    });
   });
 
-  it('renders register page at /register', () => {
+  it('renders register page at /register', async () => {
     mockUseAuth.mockReturnValue({
       user: null, isAuthenticated: false, isLoading: false,
       login: vi.fn(), register: vi.fn(), logout: vi.fn(),
     });
     renderApp('/register');
-    expect(screen.getByText(/create your account/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/create your account/i)).toBeInTheDocument();
+    });
   });
 
   it('redirects authenticated user from /login to /', () => {
@@ -136,13 +140,15 @@ describe('App Routing', () => {
     expect(screen.queryByText(/sign in to your account/i)).not.toBeInTheDocument();
   });
 
-  it('shows landing page for unauthenticated user at /', () => {
+  it('shows landing page for unauthenticated user at /', async () => {
     mockUseAuth.mockReturnValue({
       user: null, isAuthenticated: false, isLoading: false,
       login: vi.fn(), register: vi.fn(), logout: vi.fn(),
     });
     renderApp('/');
-    expect(screen.getByText(/green rides, zero hassle/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/green rides, zero hassle/i)).toBeInTheDocument();
+    });
   });
 
   it('redirects unauthenticated user from /home to /login', () => {
@@ -161,7 +167,9 @@ describe('App Routing', () => {
       login: vi.fn(), register: vi.fn(), logout: vi.fn(),
     });
     renderApp('/home');
-    expect(screen.getByText('⚡ EV Bike')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('⚡ EV Bike')).toBeInTheDocument();
+    });
   });
 
   it('shows loading state for PublicOnly when auth loading', () => {

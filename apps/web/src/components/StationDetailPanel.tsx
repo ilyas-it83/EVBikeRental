@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { stationsApi, type StationDetail, type StationSummary } from '../lib/api';
 import { Spinner } from './ui/Spinner';
@@ -32,7 +32,7 @@ function formatCountdown(seconds: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-export function StationDetailPanel({
+export const StationDetailPanel = memo(function StationDetailPanel({
   station,
   userLat,
   userLng,
@@ -73,7 +73,10 @@ export function StationDetailPanel({
       : `${station.distance.toFixed(1)} km`;
 
   const navigate = useNavigate();
-  const availableBikes = detail?.bikes.filter((b) => b.status === 'available') ?? [];
+  const availableBikes = useMemo(
+    () => detail?.bikes.filter((b) => b.status === 'available') ?? [],
+    [detail],
+  );
 
   const handleReserve = async (bikeId: string) => {
     setReserveLoadingId(bikeId);
@@ -261,4 +264,4 @@ export function StationDetailPanel({
       </div>
     </>
   );
-}
+});
