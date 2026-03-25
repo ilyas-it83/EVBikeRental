@@ -14,7 +14,10 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "test": "npm run test -w apps/api && npm run test -w apps/web",
+    "test:api": "npm run test -w apps/api",
+    "test:web": "npm run test -w apps/web"
   },
   "engines": {
     "node": ">=20.0.0"
