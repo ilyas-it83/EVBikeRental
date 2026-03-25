@@ -69,6 +69,20 @@ export const payments = sqliteTable('payments', {
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
 });
 
+// ─── Payment Methods ────────────────────────────────
+
+export const paymentMethods = sqliteTable('payment_methods', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id),
+  type: text('type', { enum: ['card', 'wallet'] }).notNull().default('card'),
+  last4: text('last4').notNull(),
+  brand: text('brand').notNull(),
+  expiryMonth: integer('expiry_month').notNull(),
+  expiryYear: integer('expiry_year').notNull(),
+  isDefault: integer('is_default', { mode: 'boolean' }).notNull().default(false),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+});
+
 // ─── Refresh Tokens ─────────────────────────────────
 
 export const refreshTokens = sqliteTable('refresh_tokens', {

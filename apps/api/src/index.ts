@@ -5,6 +5,8 @@ import cookieParser from 'cookie-parser';
 import { healthRouter } from './routes/health.js';
 import { authRouter } from './routes/auth.js';
 import { stationsRouter } from './routes/stations.js';
+import { ridesRouter } from './routes/rides.js';
+import { paymentMethodsRouter } from './routes/payment-methods.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -19,6 +21,8 @@ app.use(cookieParser());
 app.use('/api/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/stations', stationsRouter);
+app.use('/api/rides', ridesRouter);
+app.use('/api/payment-methods', paymentMethodsRouter);
 
 // Error handling middleware
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

@@ -112,6 +112,65 @@ export interface AuthResponse {
   token: string;
 }
 
+// ─── Payment Types ──────────────────────────────────
+
+export interface Payment {
+  id: string;
+  userId: string;
+  rideId: string;
+  amount: number;
+  currency: string;
+  status: PaymentStatus;
+  method: string | null;
+  createdAt: string;
+}
+
+export interface PaymentMethod {
+  id: string;
+  userId: string;
+  type: 'card' | 'wallet';
+  last4: string;
+  brand: string;
+  expiryMonth: number;
+  expiryYear: number;
+  isDefault: boolean;
+  createdAt: string;
+}
+
+// ─── Ride Detail Types ──────────────────────────────
+
+export interface RideDetail extends Ride {
+  durationMinutes: number | null;
+  startStationName: string;
+  endStationName: string | null;
+  payment: Payment | null;
+  bike: { model: string; batteryLevel: number } | null;
+}
+
+export interface PricingInfo {
+  unlockFee: number;
+  perMinuteRate: number;
+  estimatedCost: number;
+}
+
+// ─── API Request Types ──────────────────────────────
+
+export interface UnlockBikeRequest {
+  bikeId: string;
+  stationId: string;
+}
+
+export interface EndRideRequest {
+  endStationId: string;
+}
+
+export interface AddPaymentMethodRequest {
+  last4: string;
+  brand: string;
+  expiryMonth: number;
+  expiryYear: number;
+}
+
 // ─── Constants ──────────────────────────────────────
 
 export const MAX_BATTERY_LEVEL = 100;
