@@ -126,6 +126,26 @@ const SCHEMA_SQL = `
     is_default INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS subscriptions (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    plan TEXT NOT NULL DEFAULT 'free',
+    status TEXT NOT NULL DEFAULT 'active',
+    start_date TEXT NOT NULL,
+    end_date TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS reservations (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    bike_id TEXT NOT NULL REFERENCES bikes(id),
+    station_id TEXT NOT NULL REFERENCES stations(id),
+    status TEXT NOT NULL DEFAULT 'active',
+    expires_at TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `;
 
 // ─── Database Helpers ───────────────────────────────
@@ -311,6 +331,45 @@ export function seedPaymentMethod(
       overrides.expiryYear ?? 2026,
       overrides.isDefault ? 1 : 0,
     );
+  return { id };
+}
+
+// ─── Subscription Helpers ───────────────────────────
+
+export function seedSubscription(
+  sqlite: Database.Database,
+  userId: string,
+  plan: string = 'monthly',
+  overrides: { id?: string; status?: string; startDate?: string; endDate?: string } = {},
+): { id: string } {
+  const id = overrides.id ?? `sub-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+  const startDate = overrides.startDate ?? new Date().toISOString();
+  const endDate = overrides.endDate ?? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  sqlite
+    .prepare(
+      'INSERT INTO subscriptions (id, user_id, plan, status, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?)',
+    )
+    .run(id, userId, plan, overrides.status ?? 'active', startDate, endDate);
+  return { id };
+}
+
+// ─── Reservation Helpers ────────────────────────────
+
+export function seedReservation(
+  sqlite: Database.Database,
+  userId: string,
+  bikeId: string,
+  stationId: string,
+  minutesUntilExpiry: number = 15,
+  overrides: { id?: string; status?: string } = {},
+): { id: string } {
+  const id = overrides.id ?? `res-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+  const expiresAt = new Date(Date.now() + minutesUntilExpiry * 60 * 1000).toISOString();
+  sqlite
+    .prepare(
+      'INSERT INTO reservations (id, user_id, bike_id, station_id, status, expires_at) VALUES (?, ?, ?, ?, ?, ?)',
+    )
+    .run(id, userId, bikeId, stationId, overrides.status ?? 'active', expiresAt);
   return { id };
 }
 
