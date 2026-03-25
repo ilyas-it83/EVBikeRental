@@ -12,6 +12,7 @@ export enum BikeStatus {
   RENTED = 'rented',
   MAINTENANCE = 'maintenance',
   RETIRED = 'retired',
+  RESERVED = 'reserved',
 }
 
 export enum RideStatus {
@@ -169,6 +170,66 @@ export interface AddPaymentMethodRequest {
   brand: string;
   expiryMonth: number;
   expiryYear: number;
+}
+
+// ─── Subscription Types ─────────────────────────────
+
+export enum SubscriptionPlan {
+  FREE = 'free',
+  MONTHLY = 'monthly',
+  ANNUAL = 'annual',
+}
+
+export enum SubscriptionStatus {
+  ACTIVE = 'active',
+  CANCELLED = 'cancelled',
+  EXPIRED = 'expired',
+}
+
+export enum ReservationStatus {
+  ACTIVE = 'active',
+  EXPIRED = 'expired',
+  CANCELLED = 'cancelled',
+  FULFILLED = 'fulfilled',
+}
+
+export interface Subscription {
+  id: string;
+  userId: string;
+  plan: SubscriptionPlan;
+  status: SubscriptionStatus;
+  startDate: string;
+  endDate: string | null;
+  createdAt: string;
+}
+
+export interface Reservation {
+  id: string;
+  userId: string;
+  bikeId: string;
+  stationId: string;
+  status: ReservationStatus;
+  expiresAt: string;
+  createdAt: string;
+}
+
+export interface FleetOverview {
+  totalBikes: number;
+  totalStations: number;
+  activeBikes: number;
+  availableBikes: number;
+  maintenanceBikes: number;
+  activeRides: number;
+  completedRidesToday: number;
+  revenueToday: number;
+}
+
+export interface SubscriptionPlanInfo {
+  plan: SubscriptionPlan;
+  name: string;
+  price: number;
+  interval: 'month' | 'year' | null;
+  discountPercent: number;
 }
 
 // ─── Constants ──────────────────────────────────────

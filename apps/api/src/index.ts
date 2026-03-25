@@ -7,6 +7,11 @@ import { authRouter } from './routes/auth.js';
 import { stationsRouter } from './routes/stations.js';
 import { ridesRouter } from './routes/rides.js';
 import { paymentMethodsRouter } from './routes/payment-methods.js';
+import { adminRouter } from './routes/admin.js';
+import { subscriptionsRouter } from './routes/subscriptions.js';
+import { reservationsRouter } from './routes/reservations.js';
+import { setupWebSocket } from './websocket.js';
+import { expireReservations } from './services/reservation.service.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -23,6 +28,9 @@ app.use('/api/auth', authRouter);
 app.use('/api/stations', stationsRouter);
 app.use('/api/rides', ridesRouter);
 app.use('/api/payment-methods', paymentMethodsRouter);
+app.use('/api/admin', adminRouter);
+app.use('/api/subscriptions', subscriptionsRouter);
+app.use('/api/reservations', reservationsRouter);
 
 // Error handling middleware
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
@@ -30,8 +38,14 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`[api] Server running on http://localhost:${PORT}`);
 });
+
+// Attach WebSocket server
+setupWebSocket(server);
+
+// Expire stale reservations every 60 seconds
+setInterval(expireReservations, 60_000);
 
 export default app;

@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import * as pricingService from './pricing.service.js';
 import * as paymentService from './payment.service.js';
 import * as iotService from './iot.service.js';
+import { broadcastStationUpdate } from '../websocket.js';
 
 // ─── Types ──────────────────────────────────────────
 
@@ -124,6 +125,7 @@ export function startRide(
     .run();
 
   const ride = db.select().from(rides).where(eq(rides.id, id)).get()!;
+  broadcastStationUpdate(stationId);
   return enrichRide(ride);
 }
 
@@ -196,6 +198,7 @@ export function endRide(
   iotService.lockBike(ride.bikeId);
 
   const updatedRide = db.select().from(rides).where(eq(rides.id, rideId)).get()!;
+  broadcastStationUpdate(endStationId);
   return enrichRide(updatedRide);
 }
 

@@ -34,7 +34,7 @@ export const bikes = sqliteTable('bikes', {
   serialNumber: text('serial_number').notNull().unique(),
   model: text('model').notNull(),
   stationId: text('station_id').references(() => stations.id),
-  status: text('status', { enum: ['available', 'in_use', 'maintenance', 'retired'] }).notNull().default('available'),
+  status: text('status', { enum: ['available', 'in_use', 'maintenance', 'retired', 'reserved'] }).notNull().default('available'),
   batteryLevel: integer('battery_level').notNull().default(100),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
 });
@@ -80,6 +80,30 @@ export const paymentMethods = sqliteTable('payment_methods', {
   expiryMonth: integer('expiry_month').notNull(),
   expiryYear: integer('expiry_year').notNull(),
   isDefault: integer('is_default', { mode: 'boolean' }).notNull().default(false),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+});
+
+// ─── Subscriptions ──────────────────────────────────
+
+export const subscriptions = sqliteTable('subscriptions', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id),
+  plan: text('plan', { enum: ['free', 'monthly', 'annual'] }).notNull().default('free'),
+  status: text('status', { enum: ['active', 'cancelled', 'expired'] }).notNull().default('active'),
+  startDate: text('start_date').notNull(),
+  endDate: text('end_date'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+});
+
+// ─── Reservations ───────────────────────────────────
+
+export const reservations = sqliteTable('reservations', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id),
+  bikeId: text('bike_id').notNull().references(() => bikes.id),
+  stationId: text('station_id').notNull().references(() => stations.id),
+  status: text('status', { enum: ['active', 'expired', 'cancelled', 'fulfilled'] }).notNull().default('active'),
+  expiresAt: text('expires_at').notNull(),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
 });
 
