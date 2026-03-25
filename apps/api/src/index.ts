@@ -1,8 +1,10 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { healthRouter } from './routes/health.js';
+import { authRouter } from './routes/auth.js';
+import { stationsRouter } from './routes/stations.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -15,6 +17,14 @@ app.use(cookieParser());
 
 // Routes
 app.use('/api/health', healthRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/stations', stationsRouter);
+
+// Error handling middleware
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
 
 app.listen(PORT, () => {
   console.log(`[api] Server running on http://localhost:${PORT}`);
