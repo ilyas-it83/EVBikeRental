@@ -7,7 +7,7 @@ import crypto from 'crypto';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'change-me-in-production';
 const ACCESS_TOKEN_EXPIRY = '15m';
-const REFRESH_TOKEN_DAYS = 30;
+const REFRESH_TOKEN_DAYS = 7;
 
 export interface TokenPair {
   accessToken: string;

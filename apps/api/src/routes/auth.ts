@@ -1,9 +1,32 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
+import rateLimit from 'express-rate-limit';
 import * as authService from '../services/auth.service.js';
 import { requireAuth } from '../middleware/auth.js';
 
 export const authRouter = Router();
+
+// ─── Rate Limiters ──────────────────────────────────
+
+const skipInTest = () => process.env.NODE_ENV === 'test';
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: skipInTest,
+  message: { error: 'Too many login attempts, please try again later' },
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: skipInTest,
+  message: { error: 'Too many registration attempts, please try again later' },
+});
 
 // Cookie options
 const COOKIE_OPTIONS = {
@@ -20,7 +43,7 @@ function setTokenCookies(res: Response, tokens: authService.TokenPair): void {
   });
   res.cookie('refresh_token', tokens.refreshToken, {
     ...COOKIE_OPTIONS,
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 }
 
@@ -49,7 +72,7 @@ const loginSchema = z.object({
 
 // ─── POST /api/auth/register ────────────────────────
 
-authRouter.post('/register', async (req: Request, res: Response) => {
+authRouter.post('/register', registerLimiter, async (req: Request, res: Response) => {
   try {
     const parsed = registerSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -75,7 +98,7 @@ authRouter.post('/register', async (req: Request, res: Response) => {
 
 // ─── POST /api/auth/login ───────────────────────────
 
-authRouter.post('/login', async (req: Request, res: Response) => {
+authRouter.post('/login', loginLimiter, async (req: Request, res: Response) => {
   try {
     const parsed = loginSchema.safeParse(req.body);
     if (!parsed.success) {
